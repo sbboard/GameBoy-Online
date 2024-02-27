@@ -31,11 +31,6 @@ function registerGUIEvents() {
   cout("In registerGUIEvents() : Registering GUI Events.", -1);
   addEvent(
     "click",
-    document.getElementById("terminal_clear_button"),
-    clear_terminal
-  );
-  addEvent(
-    "click",
     document.getElementById("local_storage_list_refresh_button"),
     refreshStorageListing
   );
