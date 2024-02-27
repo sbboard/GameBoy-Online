@@ -1,0 +1,12 @@
+{
+  "name": "gameboyemu",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "lite-server"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "lite-server": "^2.6.1"
+  }
+}
