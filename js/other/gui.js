@@ -1,7 +1,4 @@
-var inFullscreen = false;
 var mainCanvas = null;
-var fullscreenCanvas = null;
-var showAsMinimal = false;
 var keyZones = [
   ["right", [39]],
   ["left", [37]],
@@ -14,7 +11,6 @@ var keyZones = [
 ];
 function windowingInitialize() {
   mainCanvas = document.getElementById("mainCanvas");
-  fullscreenCanvas = document.getElementById("fullscreen");
   registerGUIEvents();
   document.getElementById("enable_sound").checked = settings[0];
 
@@ -225,10 +221,6 @@ function registerGUIEvents() {
       settings[4] = document.getElementById("enable_colorization").checked;
     }
   );
-  addEvent("click", document.getElementById("do_minimal"), function () {
-    showAsMinimal = document.getElementById("do_minimal").checked;
-    fullscreenCanvas.className = showAsMinimal ? "minimum" : "maximum";
-  });
   addEvent("click", document.getElementById("software_resizing"), function () {
     settings[12] = document.getElementById("software_resizing").checked;
     if (GameBoyEmulatorInitialized()) {
