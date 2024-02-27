@@ -31,6 +31,16 @@ function windowingInitialize() {
   document.getElementById("channel2").checked = settings[14][1];
   document.getElementById("channel3").checked = settings[14][2];
   document.getElementById("channel4").checked = settings[14][3];
+
+  async function createFile() {
+    const rom = "pia.gbc";
+    let response = await fetch(`/testRoms/${rom}`);
+    let data = await response.blob();
+    let file = new File([data], `rom${rom.split(".")[0]}`);
+    console.log(file);
+    openFile(file);
+  }
+  createFile();
 }
 function registerGUIEvents() {
   cout("In registerGUIEvents() : Registering GUI Events.", -1);
@@ -120,65 +130,6 @@ function registerGUIEvents() {
       file_opener.click();
     }
   );
-  addEvent("change", document.getElementById("local_file_open"), function () {
-    if (typeof this.files != "undefined") {
-      try {
-        if (this.files.length >= 1) {
-          cout('Reading the local file "' + this.files[0].name + '"', 0);
-          try {
-            //Gecko 1.9.2+ (Standard Method)
-            var binaryHandle = new FileReader();
-            binaryHandle.onload = function () {
-              if (this.readyState == 2) {
-                cout("file loaded.", 0);
-                try {
-                  initPlayer();
-                  start(mainCanvas, this.result);
-                } catch (error) {
-                  alert(
-                    error.message +
-                      " file: " +
-                      error.fileName +
-                      " line: " +
-                      error.lineNumber
-                  );
-                }
-              } else {
-                cout("loading file, please wait...", 0);
-              }
-            };
-            binaryHandle.readAsBinaryString(this.files[this.files.length - 1]);
-          } catch (error) {
-            cout(
-              "Browser does not support the FileReader object, falling back to the non-standard File object access,",
-              2
-            );
-            //Gecko 1.9.0, 1.9.1 (Non-Standard Method)
-            var romImageString =
-              this.files[this.files.length - 1].getAsBinary();
-            try {
-              initPlayer();
-              start(mainCanvas, romImageString);
-            } catch (error) {
-              alert(
-                error.message +
-                  " file: " +
-                  error.fileName +
-                  " line: " +
-                  error.lineNumber
-              );
-            }
-          }
-        } else {
-          cout("Incorrect number of files selected for local loading.", 1);
-        }
-      } catch (error) {
-        cout("Could not load in a locally stored ROM file.", 2);
-      }
-    } else {
-      cout("could not find the handle on the file to open.", 2);
-    }
-  });
   addEvent("change", document.getElementById("save_open"), function () {
     windowStacks[9].hide();
     if (typeof this.files != "undefined") {
@@ -379,6 +330,66 @@ function registerGUIEvents() {
     autoSave();
   });
 }
+
+function openFile(file) {
+  if (typeof file != "undefined") {
+    try {
+      if (file) {
+        cout('Reading the local file "' + file.name + '"', 0);
+        try {
+          //Gecko 1.9.2+ (Standard Method)
+          var binaryHandle = new FileReader();
+          binaryHandle.onload = function () {
+            if (this.readyState == 2) {
+              cout("file loaded.", 0);
+              try {
+                initPlayer();
+                start(mainCanvas, this.result);
+              } catch (error) {
+                alert(
+                  error.message +
+                    " file: " +
+                    error.fileName +
+                    " line: " +
+                    error.lineNumber
+                );
+              }
+            } else {
+              cout("loading file, please wait...", 0);
+            }
+          };
+          binaryHandle.readAsBinaryString(file);
+        } catch (error) {
+          cout(
+            "Browser does not support the FileReader object, falling back to the non-standard File object access,",
+            2
+          );
+          //Gecko 1.9.0, 1.9.1 (Non-Standard Method)
+          var romImageString = file.getAsBinary();
+          try {
+            initPlayer();
+            start(mainCanvas, romImageString);
+          } catch (error) {
+            alert(
+              error.message +
+                " file: " +
+                error.fileName +
+                " line: " +
+                error.lineNumber
+            );
+          }
+        }
+      } else {
+        cout("Incorrect number of files selected for local loading.", 1);
+      }
+    } catch (error) {
+      cout("Could not load in a locally stored ROM file.", 2);
+    }
+  } else {
+    cout("could not find the handle on the file to open.", 2);
+  }
+}
+
 function keyDown(event) {
   var keyCode = event.keyCode;
   var keyMapLength = keyZones.length;
