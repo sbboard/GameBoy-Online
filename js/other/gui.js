@@ -66,10 +66,6 @@ function registerGUIEvents() {
   });
   addEvent("MozOrientation", window, GameBoyGyroSignalHandler);
   addEvent("deviceorientation", window, GameBoyGyroSignalHandler);
-  new popupMenu(
-    document.getElementById("GameBoy_file_menu"),
-    document.getElementById("GameBoy_file_popup")
-  );
   addEvent("click", document.getElementById("data_uri_clicker"), function () {
     var datauri = prompt(
       "Please input the ROM image's Base 64 Encoded Text:",
@@ -308,7 +304,6 @@ function registerGUIEvents() {
     document.getElementById("view_fullscreen"),
     fullscreenPlayer
   );
-  new popupMenu(document.getElementById("GameBoy_view_popup"));
   addEvent("mouseup", document.getElementById("gfx"), initNewCanvasSize);
   addEvent("resize", window, initNewCanvasSize);
   addEvent("unload", window, function () {
