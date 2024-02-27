@@ -9,27 +9,81 @@ var keyZones = [
   ["select", [16]],
   ["start", [13]],
 ];
-function windowingInitialize() {
+
+function windowingInitialize(rom) {
   mainCanvas = document.getElementById("mainCanvas");
   registerGUIEvents();
   document.getElementById("enable_sound").checked = settings[0];
-
-  async function createFile() {
-    const rom = "mole.gb";
-    let response = await fetch(`/testRoms/${rom}`);
-    let data = await response.blob();
-    let file = new File([data], `rom.${rom.split(".")[1]}`);
-    openFile(file);
-  }
-  createFile();
+  createFile(rom);
 }
+
+async function createFile(romFile) {
+  if (!romFile) return;
+  let response = await fetch(`/testRoms/${romFile}`);
+  let data = await response.blob();
+  let file = new File([data], `rom.${romFile.split(".")[1]}`);
+  openFile(file);
+}
+
+function openFile(file) {
+  if (typeof file != "undefined") {
+    try {
+      if (file) {
+        cout('Reading the local file "' + file.name + '"', 0);
+        try {
+          //Gecko 1.9.2+ (Standard Method)
+          var binaryHandle = new FileReader();
+          binaryHandle.onload = function () {
+            if (this.readyState == 2) {
+              cout("file loaded.", 0);
+              try {
+                start(mainCanvas, this.result);
+              } catch (error) {
+                alert(
+                  error.message +
+                    " file: " +
+                    error.fileName +
+                    " line: " +
+                    error.lineNumber
+                );
+              }
+            } else {
+              cout("loading file, please wait...", 0);
+            }
+          };
+          binaryHandle.readAsBinaryString(file);
+        } catch (error) {
+          cout(
+            "Browser does not support the FileReader object, falling back to the non-standard File object access,",
+            2
+          );
+          //Gecko 1.9.0, 1.9.1 (Non-Standard Method)
+          var romImageString = file.getAsBinary();
+          try {
+            start(mainCanvas, romImageString);
+          } catch (error) {
+            alert(
+              error.message +
+                " file: " +
+                error.fileName +
+                " line: " +
+                error.lineNumber
+            );
+          }
+        }
+      } else {
+        cout("Incorrect number of files selected for local loading.", 1);
+      }
+    } catch (error) {
+      cout("Could not load in a locally stored ROM file.", 2);
+    }
+  } else {
+    cout("could not find the handle on the file to open.", 2);
+  }
+}
+
 function registerGUIEvents() {
   cout("In registerGUIEvents() : Registering GUI Events.", -1);
-  addEvent(
-    "click",
-    document.getElementById("local_storage_list_refresh_button"),
-    refreshStorageListing
-  );
   addEvent("keydown", document, keyDown);
   addEvent("keyup", document, function (event) {
     keyUp(event);
@@ -105,7 +159,6 @@ function registerGUIEvents() {
                 cout("file imported.", 0);
                 try {
                   import_save(this.result);
-                  refreshStorageListing();
                 } catch (error) {
                   alert(
                     error.message +
@@ -130,7 +183,6 @@ function registerGUIEvents() {
               this.files[this.files.length - 1].getAsBinary();
             try {
               import_save(romImageString);
-              refreshStorageListing();
             } catch (error) {
               alert(
                 error.message +
@@ -266,63 +318,6 @@ function registerGUIEvents() {
   });
 }
 
-function openFile(file) {
-  if (typeof file != "undefined") {
-    try {
-      if (file) {
-        cout('Reading the local file "' + file.name + '"', 0);
-        try {
-          //Gecko 1.9.2+ (Standard Method)
-          var binaryHandle = new FileReader();
-          binaryHandle.onload = function () {
-            if (this.readyState == 2) {
-              cout("file loaded.", 0);
-              try {
-                start(mainCanvas, this.result);
-              } catch (error) {
-                alert(
-                  error.message +
-                    " file: " +
-                    error.fileName +
-                    " line: " +
-                    error.lineNumber
-                );
-              }
-            } else {
-              cout("loading file, please wait...", 0);
-            }
-          };
-          binaryHandle.readAsBinaryString(file);
-        } catch (error) {
-          cout(
-            "Browser does not support the FileReader object, falling back to the non-standard File object access,",
-            2
-          );
-          //Gecko 1.9.0, 1.9.1 (Non-Standard Method)
-          var romImageString = file.getAsBinary();
-          try {
-            start(mainCanvas, romImageString);
-          } catch (error) {
-            alert(
-              error.message +
-                " file: " +
-                error.fileName +
-                " line: " +
-                error.lineNumber
-            );
-          }
-        }
-      } else {
-        cout("Incorrect number of files selected for local loading.", 1);
-      }
-    } catch (error) {
-      cout("Could not load in a locally stored ROM file.", 2);
-    }
-  } else {
-    cout("could not find the handle on the file to open.", 2);
-  }
-}
-
 function keyDown(event) {
   var keyCode = event.keyCode;
   var keyMapLength = keyZones.length;
@@ -435,31 +430,6 @@ function outputFreezeStateRequestLink(keyName) {
   storageContainerDiv.appendChild(linkNode);
   return storageContainerDiv;
 }
-function refreshStorageListing() {
-  var storageListMasterDivSub = document.getElementById(
-    "storageListingMasterContainerSub"
-  );
-  var storageListMasterDiv = document.getElementById(
-    "storageListingMasterContainer"
-  );
-  storageListMasterDiv.removeChild(storageListMasterDivSub);
-  storageListMasterDivSub = document.createElement("div");
-  storageListMasterDivSub.id = "storageListingMasterContainerSub";
-  var keys = getLocalStorageKeys();
-  var blobPairs = [];
-  for (var index = 0; index < keys.length; ++index) {
-    blobPairs[index] = getBlobPreEncoded(keys[index]);
-    storageListMasterDivSub.appendChild(
-      outputLocalStorageRequestLink(keys[index])
-    );
-  }
-  storageListMasterDiv.appendChild(storageListMasterDivSub);
-  var linkToManipulate = document.getElementById("download_local_storage_dba");
-  linkToManipulate.href =
-    "data:application/octet-stream;base64," +
-    base64(generateMultiBlob(blobPairs));
-  linkToManipulate.download = "gameboy_color_saves.export";
-}
 function getBlobPreEncoded(keyName) {
   if (keyName.substring(0, 9) == "B64_SRAM_") {
     return [keyName.substring(4), base64_decode(findValue(keyName))];
@@ -469,80 +439,6 @@ function getBlobPreEncoded(keyName) {
     return [keyName, JSON.stringify(findValue(keyName))];
   }
 }
-function outputLocalStorageRequestLink(keyName) {
-  var linkNode = generateLink(
-    'javascript:popupStorageDialog("' + keyName + '")',
-    keyName
-  );
-  var storageContainerDiv = document.createElement("div");
-  storageContainerDiv.className = "storageListingContainer";
-  storageContainerDiv.appendChild(linkNode);
-  return storageContainerDiv;
-}
-function popupStorageDialog(keyName) {
-  var subContainer = document.getElementById("storagePopupMasterContainer");
-  var parentContainer = document.getElementById("storagePopupMasterParent");
-  parentContainer.removeChild(subContainer);
-  subContainer = document.createElement("div");
-  subContainer.id = "storagePopupMasterContainer";
-  parentContainer.appendChild(subContainer);
-  var downloadDiv = document.createElement("div");
-  downloadDiv.id = "storagePopupDownload";
-  if (keyName.substring(0, 9) == "B64_SRAM_") {
-    var downloadDiv2 = document.createElement("div");
-    downloadDiv2.id = "storagePopupDownloadRAW";
-    downloadDiv2.appendChild(
-      outputLocalStorageLink(
-        "Download RAW save data.",
-        findValue(keyName),
-        keyName
-      )
-    );
-    subContainer.appendChild(downloadDiv2);
-    downloadDiv.appendChild(
-      outputLocalStorageLink(
-        "Download in import compatible format.",
-        base64(
-          generateBlob(keyName.substring(4), base64_decode(findValue(keyName)))
-        ),
-        keyName
-      )
-    );
-  } else if (keyName.substring(0, 5) == "SRAM_") {
-    var downloadDiv2 = document.createElement("div");
-    downloadDiv2.id = "storagePopupDownloadRAW";
-    downloadDiv2.appendChild(
-      outputLocalStorageLink(
-        "Download RAW save data.",
-        base64(convertToBinary(findValue(keyName))),
-        keyName
-      )
-    );
-    subContainer.appendChild(downloadDiv2);
-    downloadDiv.appendChild(
-      outputLocalStorageLink(
-        "Download in import compatible format.",
-        base64(generateBlob(keyName, convertToBinary(findValue(keyName)))),
-        keyName
-      )
-    );
-  } else {
-    downloadDiv.appendChild(
-      outputLocalStorageLink(
-        "Download in import compatible format.",
-        base64(generateBlob(keyName, JSON.stringify(findValue(keyName)))),
-        keyName
-      )
-    );
-  }
-  var deleteLink = generateLink(
-    'javascript:deleteStorageSlot("' + keyName + '")',
-    "Delete data item from HTML5 local storage."
-  );
-  deleteLink.id = "storagePopupDelete";
-  subContainer.appendChild(downloadDiv);
-  subContainer.appendChild(deleteLink);
-}
 function convertToBinary(jsArray) {
   var length = jsArray.length;
   var binString = "";
@@ -550,10 +446,6 @@ function convertToBinary(jsArray) {
     binString += String.fromCharCode(jsArray[indexBin]);
   }
   return binString;
-}
-function deleteStorageSlot(keyName) {
-  deleteValue(keyName);
-  refreshStorageListing();
 }
 function generateLink(address, textData) {
   var link = document.createElement("a");
@@ -605,84 +497,6 @@ function findKey(keyNum) {
   }
   return null;
 }
-//Some wrappers and extensions for non-DOM3 browsers:
-function isDescendantOf(ParentElement, toCheck) {
-  if (!ParentElement || !toCheck) {
-    return false;
-  }
-  //Verify an object as either a direct or indirect child to another object.
-  function traverseTree(domElement) {
-    while (domElement != null) {
-      if (domElement.nodeType == 1) {
-        if (isSameNode(domElement, toCheck)) {
-          return true;
-        }
-        if (hasChildNodes(domElement)) {
-          if (traverseTree(domElement.firstChild)) {
-            return true;
-          }
-        }
-      }
-      domElement = domElement.nextSibling;
-    }
-    return false;
-  }
-  return traverseTree(ParentElement.firstChild);
-}
-function hasChildNodes(oElement) {
-  return typeof oElement.hasChildNodes == "function"
-    ? oElement.hasChildNodes()
-    : oElement.firstChild != null
-    ? true
-    : false;
-}
-function isSameNode(oCheck1, oCheck2) {
-  return typeof oCheck1.isSameNode == "function"
-    ? oCheck1.isSameNode(oCheck2)
-    : oCheck1 === oCheck2;
-}
-function pageXCoord(event) {
-  if (typeof event.pageX == "undefined") {
-    return event.clientX + document.documentElement.scrollLeft;
-  }
-  return event.pageX;
-}
-function pageYCoord(event) {
-  if (typeof event.pageY == "undefined") {
-    return event.clientY + document.documentElement.scrollTop;
-  }
-  return event.pageY;
-}
-function mouseLeaveVerify(oElement, event) {
-  //Hook target element with onmouseout and use this function to verify onmouseleave.
-  return (
-    isDescendantOf(
-      oElement,
-      typeof event.target != "undefined" ? event.target : event.srcElement
-    ) &&
-    !isDescendantOf(
-      oElement,
-      typeof event.relatedTarget != "undefined"
-        ? event.relatedTarget
-        : event.toElement
-    )
-  );
-}
-function mouseEnterVerify(oElement, event) {
-  //Hook target element with onmouseover and use this function to verify onmouseenter.
-  return (
-    !isDescendantOf(
-      oElement,
-      typeof event.target != "undefined" ? event.target : event.srcElement
-    ) &&
-    isDescendantOf(
-      oElement,
-      typeof event.relatedTarget != "undefined"
-        ? event.relatedTarget
-        : event.fromElement
-    )
-  );
-}
 function addEvent(sEvent, oElement, fListener) {
   if (!oElement) return;
   try {
@@ -697,25 +511,6 @@ function addEvent(sEvent, oElement, fListener) {
     oElement.attachEvent("on" + sEvent, fListener); //Pity for IE.
     cout(
       'In addEvent() : Nonstandard attachEvent() called to add an "on' +
-        sEvent +
-        '" event.',
-      -1
-    );
-  }
-}
-function removeEvent(sEvent, oElement, fListener) {
-  try {
-    oElement.removeEventListener(sEvent, fListener, false);
-    cout(
-      'In removeEvent() : Standard removeEventListener() called to remove a(n) "' +
-        sEvent +
-        '" event.',
-      -1
-    );
-  } catch (error) {
-    oElement.detachEvent("on" + sEvent, fListener); //Pity for IE.
-    cout(
-      'In removeEvent() : Nonstandard detachEvent() called to remove an "on' +
         sEvent +
         '" event.',
       -1
