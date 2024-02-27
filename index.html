@@ -19,6 +19,20 @@
       };
     </script>
     <title>GameBoy Online</title>
+    <style>
+      #GameBoy {
+        --scale: 3;
+        width: calc(160px * var(--scale));
+        height: calc(144px * var(--scale));
+      }
+      canvas {
+        width: 160px;
+        height: 144px;
+        transform: scale(var(--scale));
+        image-rendering: pixelated;
+        transform-origin: top left;
+      }
+    </style>
   </head>
   <body>
     <div id="GameBoy" class="window">
