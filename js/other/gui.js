@@ -33,10 +33,10 @@ function windowingInitialize() {
   document.getElementById("channel4").checked = settings[14][3];
 
   async function createFile() {
-    const rom = "pia.gbc";
+    const rom = "mole.gb";
     let response = await fetch(`/testRoms/${rom}`);
     let data = await response.blob();
-    let file = new File([data], `rom${rom.split(".")[0]}`);
+    let file = new File([data], `rom.${rom.split(".")[1]}`);
     console.log(file);
     openFile(file);
   }
@@ -53,14 +53,6 @@ function registerGUIEvents() {
     "click",
     document.getElementById("local_storage_list_refresh_button"),
     refreshStorageListing
-  );
-  addEvent(
-    "click",
-    document.getElementById("local_storage_list_menu"),
-    function () {
-      refreshStorageListing();
-      windowStacks[7].show();
-    }
   );
   addEvent("keydown", document, keyDown);
   addEvent("keyup", document, function (event) {
@@ -131,7 +123,6 @@ function registerGUIEvents() {
     }
   );
   addEvent("change", document.getElementById("save_open"), function () {
-    windowStacks[9].hide();
     if (typeof this.files != "undefined") {
       try {
         if (this.files.length >= 1) {
@@ -318,12 +309,6 @@ function registerGUIEvents() {
     fullscreenPlayer
   );
   new popupMenu(document.getElementById("GameBoy_view_popup"));
-  addEvent("click", document.getElementById("view_terminal"), function () {
-    windowStacks[1].show();
-  });
-  addEvent("click", document.getElementById("view_instructions"), function () {
-    windowStacks[5].show();
-  });
   addEvent("mouseup", document.getElementById("gfx"), initNewCanvasSize);
   addEvent("resize", window, initNewCanvasSize);
   addEvent("unload", window, function () {
@@ -435,11 +420,9 @@ function fullscreenPlayer() {
       gameboy.canvas = fullscreenCanvas;
       fullscreenCanvas.className = showAsMinimal ? "minimum" : "maximum";
       document.getElementById("fullscreenContainer").style.display = "block";
-      windowStacks[0].hide();
     } else {
       gameboy.canvas = mainCanvas;
       document.getElementById("fullscreenContainer").style.display = "none";
-      windowStacks[0].show();
     }
     gameboy.initLCD();
     inFullscreen = !inFullscreen;
@@ -449,7 +432,6 @@ function fullscreenPlayer() {
 }
 function runFreeze(keyName) {
   try {
-    windowStacks[8].hide();
     initPlayer();
     openState(keyName, mainCanvas);
   } catch (error) {
@@ -634,7 +616,6 @@ function popupStorageDialog(keyName) {
   deleteLink.id = "storagePopupDelete";
   subContainer.appendChild(downloadDiv);
   subContainer.appendChild(deleteLink);
-  windowStacks[6].show();
 }
 function convertToBinary(jsArray) {
   var length = jsArray.length;
@@ -646,7 +627,6 @@ function convertToBinary(jsArray) {
 }
 function deleteStorageSlot(keyName) {
   deleteValue(keyName);
-  windowStacks[6].hide();
   refreshStorageListing();
 }
 function generateLink(address, textData) {
