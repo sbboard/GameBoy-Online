@@ -37,7 +37,6 @@ function windowingInitialize() {
     let response = await fetch(`/testRoms/${rom}`);
     let data = await response.blob();
     let file = new File([data], `rom.${rom.split(".")[1]}`);
-    console.log(file);
     openFile(file);
   }
   createFile();
@@ -753,6 +752,7 @@ function mouseEnterVerify(oElement, event) {
   );
 }
 function addEvent(sEvent, oElement, fListener) {
+  if (!oElement) return;
   try {
     oElement.addEventListener(sEvent, fListener, false);
     cout(

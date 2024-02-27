@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script type="text/javascript" src="js/other/terminal.js"></script>
     <script type="text/javascript" src="js/other/gui.js"></script>
     <script type="text/javascript" src="js/other/base64.js"></script>
@@ -31,13 +33,6 @@
         <canvas id="mainCanvas" />
         <span id="title">GameBoy</span>
         <span id="port_title">Online</span>
-      </div>
-    </div>
-    <div id="terminal" class="window">
-      <div id="terminal_output" />
-      <div class="button_rack">
-        <button id="terminal_clear_button" class="left">Clear Messages</button>
-        <button id="terminal_close_button" class="right">Close Terminal</button>
       </div>
     </div>
     <div class="window" id="settings">
@@ -121,80 +116,12 @@
         </ul>
       </div>
     </div>
-    <div id="input_select" class="window">
-      <form>
-        <input type="file" id="local_file_open" />
-      </form>
-    </div>
-    <div id="save_importer" class="window">
-      <form>
-        <input type="file" id="save_open" />
-      </form>
-    </div>
-    <div class="window" id="local_storage_listing">
-      <div id="storageListingMasterContainer" class="storageList">
-        <div id="storageListingMasterContainerSub" />
-      </div>
-      <div id="download_all_storage">
-        <a href="about:blank" id="download_local_storage_dba"
-          >Export all saved data.</a
-        >
-      </div>
-      <div class="button_rack">
-        <button id="local_storage_list_refresh_button" class="left">
-          Refresh List
-        </button>
-        <button id="local_storage_list_close_button" class="right">
-          Close Storage List
-        </button>
-      </div>
-    </div>
-    <div class="window" id="local_storage_popup">
-      <div id="storagePopupMasterParent" class="storageList">
-        <div id="storagePopupMasterContainer" />
-      </div>
-      <div class="button_rack">
-        <button id="local_storage_popup_close_button" class="center">
-          Close Storage Popup
-        </button>
-      </div>
-    </div>
-    <div class="window" id="freeze_listing">
-      <div id="freezeListingMasterContainer" class="storageList">
-        <div id="freezeListingMasterContainerSub" />
-      </div>
-      <div class="button_rack">
-        <button id="freeze_list_refresh_button" class="left">
-          Refresh List
-        </button>
-        <button id="freeze_list_close_button" class="right">
-          Close Freeze State List
-        </button>
-      </div>
-    </div>
     <ul class="menu" id="GameBoy_file_popup">
-      <li>
-        Open As
-        <ul class="menu">
-          <li id="data_uri_clicker">Base 64 Encoding</li>
-          <li id="internal_file_clicker">Local File</li>
-        </ul>
-      </li>
-      <li id="save_SRAM_state_clicker">Save Game Memory</li>
-      <li id="save_state_clicker">Save Freeze State</li>
       <li id="set_volume">Set Volume</li>
       <li id="set_speed">Set Speed</li>
       <li id="restart_cpu_clicker">Restart</li>
       <li id="run_cpu_clicker">Resume</li>
       <li id="kill_cpu_clicker">Pause</li>
-    </ul>
-    <ul class="menu" id="GameBoy_view_popup">
-      <li id="view_terminal">Terminal</li>
-      <li id="view_instructions">Instructions</li>
-      <li id="view_importer">Save Importer</li>
-      <li id="local_storage_list_menu">Save Manager</li>
-      <li id="freeze_list_menu">Freeze State Manager</li>
-      <li id="view_fullscreen">Fullscreen Mode</li>
     </ul>
     <div id="fullscreenContainer">
       <canvas id="fullscreen" class="maximum" />
