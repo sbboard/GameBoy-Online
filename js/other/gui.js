@@ -17,20 +17,6 @@ function windowingInitialize() {
   fullscreenCanvas = document.getElementById("fullscreen");
   registerGUIEvents();
   document.getElementById("enable_sound").checked = settings[0];
-  document.getElementById("enable_gbc_bios").checked = settings[1];
-  document.getElementById("disable_colors").checked = settings[2];
-  document.getElementById("rom_only_override").checked = settings[9];
-  document.getElementById("mbc_enable_override").checked = settings[10];
-  document.getElementById("enable_colorization").checked = settings[4];
-  document.getElementById("do_minimal").checked = showAsMinimal;
-  document.getElementById("software_resizing").checked = settings[12];
-  document.getElementById("typed_arrays_disallow").checked = settings[5];
-  document.getElementById("gb_boot_rom_utilized").checked = settings[11];
-  document.getElementById("resize_smoothing").checked = settings[13];
-  document.getElementById("channel1").checked = settings[14][0];
-  document.getElementById("channel2").checked = settings[14][1];
-  document.getElementById("channel3").checked = settings[14][2];
-  document.getElementById("channel4").checked = settings[14][3];
 
   async function createFile() {
     const rom = "mole.gb";
@@ -55,13 +41,7 @@ function registerGUIEvents() {
   );
   addEvent("keydown", document, keyDown);
   addEvent("keyup", document, function (event) {
-    if (event.keyCode == 27) {
-      //Fullscreen on/off
-      fullscreenPlayer();
-    } else {
-      //Control keys / other
-      keyUp(event);
-    }
+    keyUp(event);
   });
   addEvent("MozOrientation", window, GameBoyGyroSignalHandler);
   addEvent("deviceorientation", window, GameBoyGyroSignalHandler);
@@ -79,7 +59,6 @@ function registerGUIEvents() {
             ").",
           0
         );
-        initPlayer();
         start(mainCanvas, base64_decode(datauri));
       } catch (error) {
         alert(
@@ -188,10 +167,8 @@ function registerGUIEvents() {
       if (GameBoyEmulatorInitialized()) {
         try {
           if (!gameboy.fromSaveState) {
-            initPlayer();
             start(mainCanvas, gameboy.getROMImage());
           } else {
-            initPlayer();
             openState(gameboy.savedStateFileName, mainCanvas);
           }
         } catch (error) {
@@ -246,9 +223,6 @@ function registerGUIEvents() {
       settings[10] = document.getElementById("mbc_enable_override").checked;
     }
   );
-  addEvent("click", document.getElementById("enable_gbc_bios"), function () {
-    settings[1] = document.getElementById("enable_gbc_bios").checked;
-  });
   addEvent(
     "click",
     document.getElementById("enable_colorization"),
@@ -298,11 +272,6 @@ function registerGUIEvents() {
   addEvent("click", document.getElementById("channel4"), function () {
     settings[14][3] = document.getElementById("channel4").checked;
   });
-  addEvent(
-    "click",
-    document.getElementById("view_fullscreen"),
-    fullscreenPlayer
-  );
   addEvent("mouseup", document.getElementById("gfx"), initNewCanvasSize);
   addEvent("resize", window, initNewCanvasSize);
   addEvent("unload", window, function () {
@@ -322,7 +291,6 @@ function openFile(file) {
             if (this.readyState == 2) {
               cout("file loaded.", 0);
               try {
-                initPlayer();
                 start(mainCanvas, this.result);
               } catch (error) {
                 alert(
@@ -346,7 +314,6 @@ function openFile(file) {
           //Gecko 1.9.0, 1.9.1 (Non-Standard Method)
           var romImageString = file.getAsBinary();
           try {
-            initPlayer();
             start(mainCanvas, romImageString);
           } catch (error) {
             alert(
@@ -403,30 +370,8 @@ function keyUp(event) {
     }
   }
 }
-function initPlayer() {
-  document.getElementById("title").style.display = "none";
-  document.getElementById("port_title").style.display = "none";
-  document.getElementById("fullscreenContainer").style.display = "none";
-}
-function fullscreenPlayer() {
-  if (GameBoyEmulatorInitialized()) {
-    if (!inFullscreen) {
-      gameboy.canvas = fullscreenCanvas;
-      fullscreenCanvas.className = showAsMinimal ? "minimum" : "maximum";
-      document.getElementById("fullscreenContainer").style.display = "block";
-    } else {
-      gameboy.canvas = mainCanvas;
-      document.getElementById("fullscreenContainer").style.display = "none";
-    }
-    gameboy.initLCD();
-    inFullscreen = !inFullscreen;
-  } else {
-    cout("Cannot go into fullscreen mode.", 2);
-  }
-}
 function runFreeze(keyName) {
   try {
-    initPlayer();
     openState(keyName, mainCanvas);
   } catch (error) {
     cout(
