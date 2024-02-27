@@ -352,16 +352,6 @@ function keyUp(event) {
     }
   }
 }
-function runFreeze(keyName) {
-  try {
-    openState(keyName, mainCanvas);
-  } catch (error) {
-    cout(
-      "A problem with attempting to open the selected save state occurred.",
-      2
-    );
-  }
-}
 //Wrapper for localStorage getItem, so that data can be retrieved in various types.
 function findValue(key) {
   try {
@@ -393,109 +383,6 @@ function deleteValue(key) {
     //An older Gecko 1.8.1/1.9.0 method of storage (Deprecated due to the obvious security hole):
     window.globalStorage[location.hostname].removeItem(key);
   }
-}
-function outputLocalStorageLink(keyName, dataFound, downloadName) {
-  return generateDownloadLink(
-    "data:application/octet-stream;base64," + dataFound,
-    keyName,
-    downloadName
-  );
-}
-function refreshFreezeListing() {
-  var storageListMasterDivSub = document.getElementById(
-    "freezeListingMasterContainerSub"
-  );
-  var storageListMasterDiv = document.getElementById(
-    "freezeListingMasterContainer"
-  );
-  storageListMasterDiv.removeChild(storageListMasterDivSub);
-  storageListMasterDivSub = document.createElement("div");
-  storageListMasterDivSub.id = "freezeListingMasterContainerSub";
-  var keys = getLocalStorageKeys();
-  while (keys.length > 0) {
-    key = keys.shift();
-    if (key.substring(0, 7) == "FREEZE_") {
-      storageListMasterDivSub.appendChild(outputFreezeStateRequestLink(key));
-    }
-  }
-  storageListMasterDiv.appendChild(storageListMasterDivSub);
-}
-function outputFreezeStateRequestLink(keyName) {
-  var linkNode = generateLink(
-    'javascript:runFreeze("' + keyName + '")',
-    keyName
-  );
-  var storageContainerDiv = document.createElement("div");
-  storageContainerDiv.className = "storageListingContainer";
-  storageContainerDiv.appendChild(linkNode);
-  return storageContainerDiv;
-}
-function getBlobPreEncoded(keyName) {
-  if (keyName.substring(0, 9) == "B64_SRAM_") {
-    return [keyName.substring(4), base64_decode(findValue(keyName))];
-  } else if (keyName.substring(0, 5) == "SRAM_") {
-    return [keyName, convertToBinary(findValue(keyName))];
-  } else {
-    return [keyName, JSON.stringify(findValue(keyName))];
-  }
-}
-function convertToBinary(jsArray) {
-  var length = jsArray.length;
-  var binString = "";
-  for (var indexBin = 0; indexBin < length; indexBin++) {
-    binString += String.fromCharCode(jsArray[indexBin]);
-  }
-  return binString;
-}
-function generateLink(address, textData) {
-  var link = document.createElement("a");
-  link.href = address;
-  link.appendChild(document.createTextNode(textData));
-  return link;
-}
-function generateDownloadLink(address, textData, keyName) {
-  var link = generateLink(address, textData);
-  link.download = keyName + ".sav";
-  return link;
-}
-function checkStorageLength() {
-  try {
-    return window.localStorage.length;
-  } catch (error) {
-    //An older Gecko 1.8.1/1.9.0 method of storage (Deprecated due to the obvious security hole):
-    return window.globalStorage[location.hostname].length;
-  }
-}
-function getLocalStorageKeys() {
-  var storageLength = checkStorageLength();
-  var keysFound = [];
-  var index = 0;
-  var nextKey = null;
-  while (index < storageLength) {
-    nextKey = findKey(index++);
-    if (nextKey !== null && nextKey.length > 0) {
-      if (
-        nextKey.substring(0, 5) == "SRAM_" ||
-        nextKey.substring(0, 9) == "B64_SRAM_" ||
-        nextKey.substring(0, 7) == "FREEZE_" ||
-        nextKey.substring(0, 4) == "RTC_"
-      ) {
-        keysFound.push(nextKey);
-      }
-    } else {
-      break;
-    }
-  }
-  return keysFound;
-}
-function findKey(keyNum) {
-  try {
-    return window.localStorage.key(keyNum);
-  } catch (error) {
-    //An older Gecko 1.8.1/1.9.0 method of storage (Deprecated due to the obvious security hole):
-    return window.globalStorage[location.hostname].key(keyNum);
-  }
-  return null;
 }
 function addEvent(sEvent, oElement, fListener) {
   if (!oElement) return;
