@@ -1,4 +1,15 @@
-var mainCanvas = null;
+declare function start(canvas, ROM);
+declare function GameBoyEmulatorInitialized(): boolean;
+declare function GameBoyKeyDown(key);
+declare function GameBoyKeyUp(key);
+declare function openState(
+  savedStateFileName: string,
+  mainCanvas: HTMLCanvasElement
+);
+declare var gameboy: any;
+declare var settings: any;
+
+var mainCanvas: HTMLCanvasElement | null = null;
 var keyZones = [
   ["right", [39]],
   ["left", [37]],
@@ -11,9 +22,8 @@ var keyZones = [
 ];
 
 function windowingInitialize(rom) {
-  mainCanvas = document.getElementById("mainCanvas");
+  mainCanvas = document.getElementById("mainCanvas") as HTMLCanvasElement;
   registerGUIEvents();
-  document.getElementById("enable_sound").checked = settings[0];
   createFile(rom);
 }
 
@@ -29,13 +39,11 @@ function openFile(file) {
   if (typeof file != "undefined") {
     try {
       if (file) {
-        cout('Reading the local file "' + file.name + '"', 0);
         try {
           //Gecko 1.9.2+ (Standard Method)
           var binaryHandle = new FileReader();
           binaryHandle.onload = function () {
             if (this.readyState == 2) {
-              cout("file loaded.", 0);
               try {
                 start(mainCanvas, this.result);
               } catch (error) {
@@ -48,15 +56,10 @@ function openFile(file) {
                 );
               }
             } else {
-              cout("loading file, please wait...", 0);
             }
           };
           binaryHandle.readAsBinaryString(file);
         } catch (error) {
-          cout(
-            "Browser does not support the FileReader object, falling back to the non-standard File object access,",
-            2
-          );
           //Gecko 1.9.0, 1.9.1 (Non-Standard Method)
           var romImageString = file.getAsBinary();
           try {
@@ -71,19 +74,14 @@ function openFile(file) {
             );
           }
         }
-      } else {
-        cout("Incorrect number of files selected for local loading.", 1);
       }
     } catch (error) {
-      cout("Could not load in a locally stored ROM file.", 2);
+      /* empty */
     }
-  } else {
-    cout("could not find the handle on the file to open.", 2);
   }
 }
 
 function registerGUIEvents() {
-  cout("In registerGUIEvents() : Registering GUI Events.", -1);
   addEvent("keydown", document, keyDown);
   addEvent("keyup", document, function (event) {
     keyUp(event);
@@ -97,14 +95,6 @@ function registerGUIEvents() {
       }
     }
   });
-  addEvent("click", document.getElementById("set_speed"), function () {
-    if (GameBoyEmulatorInitialized()) {
-      var speed = prompt("Set the emulator speed here:", "1.0");
-      if (speed != null && speed.length > 0) {
-        gameboy.setSpeed(Math.max(parseFloat(speed), 0.001));
-      }
-    }
-  });
 
   //restart button
   addEvent(
@@ -113,6 +103,7 @@ function registerGUIEvents() {
     function () {
       if (GameBoyEmulatorInitialized()) {
         try {
+          if (!mainCanvas) return;
           if (!gameboy.fromSaveState) {
             start(mainCanvas, gameboy.getROMImage());
           } else {
@@ -127,31 +118,15 @@ function registerGUIEvents() {
               error.lineNumber
           );
         }
-      } else {
-        cout(
-          "Could not restart, as a previous emulation session could not be found.",
-          1
-        );
       }
     }
   );
+}
 
-  //unpause button
-  addEvent("click", document.getElementById("run_cpu_clicker"), function () {
-    run();
-  });
-
-  //pause
-  addEvent("click", document.getElementById("kill_cpu_clicker"), function () {
-    pause();
-  });
-
-  addEvent("click", document.getElementById("enable_sound"), function () {
-    settings[0] = document.getElementById("enable_sound").checked;
-    if (GameBoyEmulatorInitialized()) {
-      gameboy.initSound();
-    }
-  });
+function mute(e: Event) {
+  const target = e.target as HTMLInputElement;
+  settings[0] = !target.checked;
+  if (GameBoyEmulatorInitialized()) gameboy.initSound();
 }
 
 function keyDown(event) {
@@ -188,55 +163,21 @@ function keyUp(event) {
     }
   }
 }
-//Wrapper for localStorage getItem, so that data can be retrieved in various types.
+
 function findValue(key) {
-  try {
-    if (window.localStorage.getItem(key) != null) {
-      return JSON.parse(window.localStorage.getItem(key));
-    }
-  } catch (error) {
-    //An older Gecko 1.8.1/1.9.0 method of storage (Deprecated due to the obvious security hole):
-    if (window.globalStorage[location.hostname].getItem(key) != null) {
-      return JSON.parse(window.globalStorage[location.hostname].getItem(key));
-    }
+  if (window.localStorage.getItem(key) != null) {
+    return JSON.parse(window.localStorage.getItem(key));
   }
   return null;
 }
-//Wrapper for localStorage setItem, so that data can be set in various types.
+
 function setValue(key, value) {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    //An older Gecko 1.8.1/1.9.0 method of storage (Deprecated due to the obvious security hole):
-    window.globalStorage[location.hostname].setItem(key, JSON.stringify(value));
-  }
+  window.localStorage.setItem(key, JSON.stringify(value));
 }
-//Wrapper for localStorage removeItem, so that data can be set in various types.
+
 function deleteValue(key) {
-  try {
-    window.localStorage.removeItem(key);
-  } catch (error) {
-    //An older Gecko 1.8.1/1.9.0 method of storage (Deprecated due to the obvious security hole):
-    window.globalStorage[location.hostname].removeItem(key);
-  }
+  window.localStorage.removeItem(key);
 }
 function addEvent(sEvent, oElement, fListener) {
-  if (!oElement) return;
-  try {
-    oElement.addEventListener(sEvent, fListener, false);
-    cout(
-      'In addEvent() : Standard addEventListener() called to add a(n) "' +
-        sEvent +
-        '" event.',
-      -1
-    );
-  } catch (error) {
-    oElement.attachEvent("on" + sEvent, fListener); //Pity for IE.
-    cout(
-      'In addEvent() : Nonstandard attachEvent() called to add an "on' +
-        sEvent +
-        '" event.',
-      -1
-    );
-  }
+  oElement.addEventListener(sEvent, fListener, false);
 }

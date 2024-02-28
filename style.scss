@@ -1,0 +1,30 @@
+#GameBoy {
+  --scale: 3;
+  width: calc(160px * var(--scale));
+  height: calc(144px * var(--scale));
+}
+canvas {
+  width: 160px;
+  height: 144px;
+  transform: scale(var(--scale));
+  image-rendering: pixelated;
+  transform-origin: top left;
+}
+#gfx {
+  background-color: black;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  display: flex;
+  div {
+    color: white;
+    text-align: center;
+    height: 1em;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+  }
+}
