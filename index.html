@@ -14,9 +14,12 @@
     <script type="text/javascript" src="js/GameBoyCore.js"></script>
     <script type="text/javascript" src="js/GameBoyIO.js"></script>
     <script type="text/javascript">
-      window.onload = function () {
+      let started = false;
+      function loadROM() {
+        if (started) return;
         windowingInitialize("mole.gb");
-      };
+        started = true;
+      }
     </script>
     <title>GameBoy Online</title>
     <style>
@@ -32,11 +35,31 @@
         image-rendering: pixelated;
         transform-origin: top left;
       }
+      #gfx {
+        background-color: black;
+        height: 100%;
+        width: 100%;
+        position: relative;
+        display: flex;
+      }
+
+      #gfx div {
+        color: white;
+        text-align: center;
+        height: 1em;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        margin: auto;
+      }
     </style>
   </head>
   <body>
     <div id="GameBoy" class="window">
-      <div id="gfx">
+      <div id="gfx" onclick="loadROM()">
+        <div>click to start</div>
         <canvas id="mainCanvas" />
       </div>
     </div>
