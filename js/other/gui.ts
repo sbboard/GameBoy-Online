@@ -23,7 +23,8 @@ var keyZones = [
 
 function windowingInitialize(rom) {
   mainCanvas = document.getElementById("mainCanvas") as HTMLCanvasElement;
-  registerGUIEvents();
+  document.addEventListener("keydown", keyDown, false);
+  document.addEventListener("keyup", (event) => keyUp(event), false);
   createFile(rom);
 }
 
@@ -81,52 +82,23 @@ function openFile(file) {
   }
 }
 
-function registerGUIEvents() {
-  addEvent("keydown", document, keyDown);
-  addEvent("keyup", document, function (event) {
-    keyUp(event);
-  });
-  addEvent("click", document.getElementById("set_volume"), function () {
-    if (GameBoyEmulatorInitialized()) {
-      var volume = prompt("Set the volume here:", "1.0");
-      if (volume != null && volume.length > 0) {
-        settings[3] = Math.min(Math.max(parseFloat(volume), 0), 1);
-        gameboy.changeVolume();
-      }
-    }
-  });
-
-  //restart button
-  addEvent(
-    "click",
-    document.getElementById("restart_cpu_clicker"),
-    function () {
-      if (GameBoyEmulatorInitialized()) {
-        try {
-          if (!mainCanvas) return;
-          if (!gameboy.fromSaveState) {
-            start(mainCanvas, gameboy.getROMImage());
-          } else {
-            openState(gameboy.savedStateFileName, mainCanvas);
-          }
-        } catch (error) {
-          alert(
-            error.message +
-              " file: " +
-              error.fileName +
-              " line: " +
-              error.lineNumber
-          );
-        }
-      }
-    }
-  );
-}
-
 function mute(e: Event) {
   const target = e.target as HTMLInputElement;
   settings[0] = !target.checked;
   if (GameBoyEmulatorInitialized()) gameboy.initSound();
+}
+
+function reset() {
+  if (!GameBoyEmulatorInitialized()) return;
+  try {
+    if (!mainCanvas) return;
+    if (!gameboy.fromSaveState) start(mainCanvas, gameboy.getROMImage());
+    else openState(gameboy.savedStateFileName, mainCanvas);
+  } catch (error) {
+    alert(
+      error.message + " file: " + error.fileName + " line: " + error.lineNumber
+    );
+  }
 }
 
 function keyDown(event) {
@@ -165,8 +137,8 @@ function keyUp(event) {
 }
 
 function findValue(key) {
-  if (window.localStorage.getItem(key) != null) {
-    return JSON.parse(window.localStorage.getItem(key));
+  if (window.localStorage.getItem(key)) {
+    return JSON.parse(window.localStorage.getItem(key) as string);
   }
   return null;
 }
@@ -177,7 +149,4 @@ function setValue(key, value) {
 
 function deleteValue(key) {
   window.localStorage.removeItem(key);
-}
-function addEvent(sEvent, oElement, fListener) {
-  oElement.addEventListener(sEvent, fListener, false);
 }
